@@ -19,9 +19,34 @@ async function boot(){
 }
 
 async function renderIndex(showHidden=false){
-  const res = await fetch("./reports/index.json", {cache:"no-store"});
-  if(!res.ok) throw new Error("reports/index.json을 불러오지 못했습니다.");
-  const reports = await res.json();
+  const api = "https://api.github.com/repos/seungjink/piano-practice-analysis/contents/reports?ref=main";
+  const res = await fetch(api, {cache:"no-store"});
+  if(!res.ok) throw new Error("reports 폴더 목록을 불러오지 못했습니다.");
+
+  const files = (await res.json())
+    .filter(x => x.type === "file" && x.name.endsWith(".md") && x.name !== "template.md");
+
+  const reports = (await Promise.all(files.map(async file => {
+    const rawRes = await fetch(file.download_url, {cache:"no-store"});
+    if(!rawRes.ok) return null;
+    const raw = await rawRes.text();
+    const {meta} = parseFrontmatter(raw);
+    return {
+      slug: file.name.replace(/\.md$/,""),
+      title: meta.title || file.name.replace(/\.md$/,""),
+      date: meta.date || "",
+      summary: meta.summary || "",
+      hidden: meta.hidden === true,
+      order: Number(meta.order ?? 9999)
+    };
+  }))).filter(Boolean);
+
+  reports.sort((a,b) =>
+    (a.order-b.order) ||
+    String(b.date).localeCompare(String(a.date)) ||
+    String(a.title).localeCompare(String(b.title))
+  );
+
   const visible = reports.filter(r => showHidden || !r.hidden);
   app.innerHTML = `
     <section class="paper narrow">
