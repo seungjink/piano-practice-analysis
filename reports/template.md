@@ -3,7 +3,7 @@ title: "곡명 — 분석 제목"
 date: "2026-09-19"
 summary: "메인 목록에 표시할 짧은 설명"
 hidden: false
-template: true
+template: false
 order: 100
 ---
 
