@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Piano Practice Analysis</title>
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+  <script defer src="./assets/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-title" href="./">Piano Practice Analysis</a>
+    <div class="header-actions">
+      <a href="./reports/template.md" class="text-link" target="_blank" rel="noreferrer">Template</a>
+    </div>
+  </header>
+
+  <main id="app" class="page-shell" aria-live="polite">
+    <p class="loading">Loading…</p>
+  </main>
+
+  <template id="error-template">
+    <section class="paper narrow">
+      <h1>페이지를 불러오지 못했습니다.</h1>
+      <p class="muted error-message"></p>
+      <p><a href="./">분석 목록으로 돌아가기</a></p>
+    </section>
+  </template>
+</body>
+</html>
