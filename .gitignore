@@ -1,0 +1,13 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local/private media — do not accidentally commit recordings
+local-media/
+*.mp4
+*.mov
+*.m4v
+*.avi
+*.mkv
