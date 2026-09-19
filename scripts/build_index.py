@@ -41,8 +41,6 @@ for path in sorted(REPORTS.glob("*.md")):
     if path.name == "template.md":
         continue
     meta = frontmatter(path.read_text(encoding="utf-8"))
-    if meta.get("template") is True:
-        continue
     items.append({
         "slug": path.stem,
         "file": path.name,
