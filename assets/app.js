@@ -4,6 +4,7 @@ const localMedia = new Map();
 const clipStates = new Map();
 let clipSeq = 0;
 let abToken = 0;
+let currentReportBody = "";
 
 document.addEventListener("DOMContentLoaded", boot);
 
@@ -92,6 +93,7 @@ async function renderReport(slug){
       <section id="report-body" class="report-body"></section>
     </article>`;
 
+  currentReportBody = body;
   bindMediaPickers();
   renderMarkdownBody(body);
 }
@@ -149,7 +151,11 @@ function bindMediaPickers(){
       const old=localMedia.get(alias);
       if(old?.url) URL.revokeObjectURL(old.url);
       localMedia.set(alias,{file,url:URL.createObjectURL(file)});
-      refreshLocalAlias(alias);
+      if(currentReportBody){
+        renderMarkdownBody(currentReportBody);
+      }else{
+        refreshLocalAlias(alias);
+      }
     });
   });
 }
@@ -175,25 +181,28 @@ function refreshLocalAlias(alias){
 function renderMarkdownBody(md){
   clipSeq=0;
   clipStates.clear();
-  const blocks=[];
-  md = md.replace(/```(piano-video|piano-compare|piano-image)\n([\s\S]*?)```/g,(all,type,body)=>{
-    const token=`@@PIANO_BLOCK_${blocks.length}@@`;
-    blocks.push({type,body});
-    return "\n"+token+"\n";
-  });
 
-  let html;
-  if(window.marked){
-    html=marked.parse(md);
-  }else{
-    html=basicMarkdown(md);
+  const blockRe=/```(piano-video|piano-compare|piano-image)\\n([\\s\\S]*?)```/g;
+  let html="";
+  let last=0;
+  let m;
+
+  while((m=blockRe.exec(md))){
+    html += renderNormalMarkdown(md.slice(last,m.index));
+    html += customBlockHTML({type:m[1],body:m[2]});
+    last=blockRe.lastIndex;
   }
-  blocks.forEach((b,i)=>{
-    html=html.replace(`<p>@@PIANO_BLOCK_${i}@@</p>`, customBlockHTML(b));
-    html=html.replace(`@@PIANO_BLOCK_${i}@@`, customBlockHTML(b));
-  });
-  document.querySelector("#report-body").innerHTML=html;
+  html += renderNormalMarkdown(md.slice(last));
+
+  const target=document.querySelector("#report-body");
+  target.innerHTML=html;
   initClips();
+}
+
+function renderNormalMarkdown(md){
+  if(!md || !md.trim()) return "";
+  if(window.marked) return marked.parse(md);
+  return basicMarkdown(md);
 }
 
 function customBlockHTML(block){
@@ -240,7 +249,10 @@ function clipHTML(id,src,label,start,end){
       <span class="clip-label">${esc(label)}</span>
       <span class="clip-meta">0:00–${fmt(dur)}</span>
     </div>
-    <div class="video-wrap"><video preload="metadata" playsinline></video></div>
+    <div class="video-wrap">
+      <video preload="metadata" playsinline></video>
+      <div class="video-placeholder">${alias ? `로컬 영상 “${esc(alias)}”를 선택하세요.` : "영상을 불러오는 중…"}</div>
+    </div>
     <div class="clip-controls">
       <input class="timebar" type="range" min="0" max="${dur}" step="0.01" value="0">
       <div class="control-row">
@@ -310,13 +322,16 @@ function initClips(){
 }
 
 function setVideoSource(st,src){
+  const wrap=st.video.closest(".video-wrap");
   if(!src){
     st.video.removeAttribute("src");
     st.video.load();
+    wrap?.classList.remove("has-source");
     return;
   }
   st.video.src=src;
   st.video.load();
+  wrap?.classList.add("has-source");
 }
 
 function resolveSrc(src){
