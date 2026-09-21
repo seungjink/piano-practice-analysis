@@ -182,7 +182,7 @@ function renderMarkdownBody(md){
   clipSeq=0;
   clipStates.clear();
 
-  const blockRe=/```(piano-video|piano-compare|piano-image)\\n([\\s\\S]*?)```/g;
+  const blockRe=/```(piano-video|piano-compare|piano-image)\r?\n([\s\S]*?)```/g;
   let html="";
   let last=0;
   let m;
