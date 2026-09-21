@@ -133,7 +133,7 @@ function mediaPickerHTML(items){
   return `
   <section class="media-picker">
     <h2>로컬 미디어 연결</h2>
-    <p>브라우저 보안상 로컬 파일은 페이지를 열 때 직접 선택해야 합니다. 선택한 파일은 업로드되지 않고 현재 브라우저 세션에서만 사용됩니다.</p>
+    <p>take-a / take-b는 기본적으로 artifacts/take-a.mp4, artifacts/take-b.mp4를 사용합니다. 아래에서 파일을 선택하면 해당 세션 동안 기본 영상을 덮어씁니다.</p>
     ${items.map(x=>`
       <div class="media-row">
         <label for="local-${esc(x.alias)}">${esc(x.alias)}</label>
@@ -337,7 +337,16 @@ function setVideoSource(st,src){
 function resolveSrc(src){
   if(!src) return "";
   const alias=localAlias(src);
-  if(alias) return localMedia.get(alias)?.url || "";
+  if(alias){
+    const local = localMedia.get(alias)?.url;
+    if(local) return local;
+
+    // Default repository media fallback.
+    if(alias === "take-a") return "./artifacts/take-a.mp4";
+    if(alias === "take-b") return "./artifacts/take-b.mp4";
+
+    return "";
+  }
   return src;
 }
 function localAlias(src){
